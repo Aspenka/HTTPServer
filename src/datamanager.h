@@ -26,6 +26,7 @@ signals:
 public slots:
     void            start       (int index);
     void            onTimeout   (int index);
+    void            clear       ();
 
 };
 

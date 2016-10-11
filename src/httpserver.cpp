@@ -33,7 +33,7 @@ void HttpServer::start()
 {
     QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
     QString message;
-    if(listen(QHostAddress::Any, 8180))
+    if(listen(QHostAddress::Any, port))
     {
         QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
         message = "Server started";
@@ -42,11 +42,12 @@ void HttpServer::start()
         qDebug() << tr(" [ ][HTTPServer::102][%1] %2, port %3").arg(date, message,QString::number(port));
 
         connect(this, SIGNAL(newConnection()), this, SLOT(onConnection()));
-        //startTimer();
-
         dm = new DataManager();
+        startTimer();
+
+        /*dm = new DataManager();
         connect(dm, SIGNAL(sentUrl(QString)), this, SLOT(get(QString)));
-        dm->setData(get(url));
+        dm->setData(get(url));*/
     }
     else
     {
@@ -58,8 +59,7 @@ void HttpServer::start()
 }
 
 void HttpServer::startTimer()
-{
-    dm = new DataManager();
+{    
     connect(dm, SIGNAL(sentUrl(QString)), this, SLOT(get(QString)));
     dm->setData(get(url));
 }
@@ -137,7 +137,7 @@ QJsonDocument HttpServer::get(QString url)
 void HttpServer::restart()
 {
     disconnect(dm, SIGNAL(sentUrl(QString)), this, SLOT(get(QString)));
-    delete dm;
+    dm->clear();
     startTimer();
 }
 
@@ -146,22 +146,20 @@ void HttpServer::onReadyRead()
     QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
     QTcpSocket *socket = qobject_cast <QTcpSocket *> (sender());
 
-    QString data = socket->readAll();
-    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
-
     QString message = "Restarting timer...";
     qDebug() << tr(" [ ][HTTPServer::107][%1] %2").arg(date, message);
 
     QString str = "HTTP/1.1 200 OK\r\n\r\n%1";
     socket->write(str.arg(date).toUtf8());
     socket->disconnectFromHost();
+    onDisconnect();
 
     restart();
 }
 
 void HttpServer::onDisconnect()
 {
-    QTcpSocket *socket = qobject_cast <QTcpSocket *> (sender());
+    QTcpSocket *socket = qobject_cast <QTcpSocket *> (sender());   
     socket->close();
     socket->deleteLater();
 }

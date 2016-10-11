@@ -10,11 +10,7 @@ DataManager::DataManager(QObject *parent) : QObject(parent)
 
 DataManager::~DataManager()
 {
-    qDeleteAll(timer.begin(), timer.end());
-    timer.clear();
-    QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-    QString message = "Timer list deleted!";
-    qDebug() << tr(" [ ][DataManager::202][%1] %2").arg(date, message);
+    clear();
 }
 
 void DataManager::setData(QJsonDocument data)
@@ -72,5 +68,14 @@ void DataManager::onTimeout(int index)
     QString message = "Calling: " + timer[index]->getCronjob();
     qDebug() << tr(" [ ][DataManager::205][%1] %2").arg(date, message);
     emit sentUrl(timer[index]->getUrl());
+}
+
+void DataManager::clear()
+{
+    qDeleteAll(timer.begin(), timer.end());
+    timer.clear();
+    QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+    QString message = "Timer list deleted!";
+    qDebug() << tr(" [ ][DataManager::202][%1] %2").arg(date, message);
 }
 
