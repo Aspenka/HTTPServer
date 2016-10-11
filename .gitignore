@@ -6,7 +6,7 @@
 *.a
 *.la
 *.lai
-*.so
+*.so*
 *.dll
 *.dylib
 
@@ -36,3 +36,18 @@ Makefile*
 # QtCtreator CMake
 CMakeLists.txt.user
 
+# CSP
+
+*.exe
+*.db
+*.bin
+*.txt
+*.html
+*.cfg
+*.csv
+*.bak
+*.Debug
+*.Release
+*.db-journal
+bin/*
+*.stash
