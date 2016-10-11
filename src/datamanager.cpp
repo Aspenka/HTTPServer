@@ -19,7 +19,6 @@ DataManager::~DataManager()
 
 void DataManager::setData(QJsonDocument data)
 {
-    qDebug() << "Received data: " << data.object();
     QJsonArray array = data.array();
     parse(array);
 }

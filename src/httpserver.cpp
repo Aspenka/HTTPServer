@@ -144,6 +144,8 @@ void HttpServer::onReadyRead()
     QString message = "Getting data...";
     qDebug() << tr(" [ ][HTTPServer::107][%1] %2").arg(date, message);
 
+    qDebug() << "Received data: " << data;
+
     dm->setData(doc);
     /*QString str = "HTTP/1.1 200 OK\r\n\r\n%1";
     socket->write(str.arg(date).toUtf8());
