@@ -42,6 +42,7 @@ void HttpServer::start()
         qDebug() << tr(" [ ][HTTPServer::102][%1] %2, port %3").arg(date, message,QString::number(port));
 
         connect(this, SIGNAL(newConnection()), this, SLOT(onConnection()));
+        //startTimer();
 
         dm = new DataManager();
         connect(dm, SIGNAL(sentUrl(QString)), this, SLOT(get(QString)));
@@ -56,12 +57,19 @@ void HttpServer::start()
     }
 }
 
+void HttpServer::startTimer()
+{
+    dm = new DataManager();
+    connect(dm, SIGNAL(sentUrl(QString)), this, SLOT(get(QString)));
+    dm->setData(get(url));
+}
+
 void HttpServer::getParameters()
 {
     QString path = QCoreApplication::applicationDirPath() + "/config.cfg";
     QSettings set (path, QSettings::IniFormat);
     set.beginGroup("CONNECTION");
-    qint16 port = set.value("port", "8085").toInt();
+    qint16 port = set.value("port", "8180").toInt();
     QString url = set.value("url", "http://pvo.ascae.ru/api/schedule?access-token=api_token").toString();
     set.endGroup();
     setParameters(port, url);
@@ -130,7 +138,7 @@ void HttpServer::restart()
 {
     disconnect(dm, SIGNAL(sentUrl(QString)), this, SLOT(get(QString)));
     delete dm;
-    start();
+    startTimer();
 }
 
 void HttpServer::onReadyRead()
@@ -141,16 +149,14 @@ void HttpServer::onReadyRead()
     QString data = socket->readAll();
     QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
 
-    QString message = "Getting data...";
+    QString message = "Restarting timer...";
     qDebug() << tr(" [ ][HTTPServer::107][%1] %2").arg(date, message);
 
-    qDebug() << "Received data: " << data;
-
-    dm->setData(doc);
-    /*QString str = "HTTP/1.1 200 OK\r\n\r\n%1";
+    QString str = "HTTP/1.1 200 OK\r\n\r\n%1";
     socket->write(str.arg(date).toUtf8());
-    //--
-    socket->disconnectFromHost();*/
+    socket->disconnectFromHost();
+
+    restart();
 }
 
 void HttpServer::onDisconnect()

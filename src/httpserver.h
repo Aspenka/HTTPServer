@@ -24,7 +24,7 @@ private:
     qint16                  port;
 
     void                    getParameters       ();
-
+    void		    startTimer		();
     bool                    post                (QJsonDocument data);
 signals:
 
