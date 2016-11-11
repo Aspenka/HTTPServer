@@ -36,9 +36,10 @@ void DataManager::parse(QJsonArray array)
                 QString message = "Timer have cron: " + cron;
                 qDebug() << tr(" [ ][DataManager::203][%1] %2").arg(date, message);
 
-                Timer *t = new Timer(cron, url, uid, timer.size());
+                MyTimer *t = new MyTimer();
+                connect(t, SIGNAL(timeout()), this, SLOT(onTimeout()));
+                t->start(cron, url);
                 timer.append(t);
-                start(timer.size() - 1);
             }
             else
             {
@@ -56,18 +57,13 @@ void DataManager::parse(QJsonArray array)
     }
 }
 
-void DataManager::start(int index)
-{  
-    connect (timer[index], SIGNAL(timeout(int)), this, SLOT(onTimeout(int)));
-    timer[index]->start();
-}
-
-void DataManager::onTimeout(int index)
+void DataManager::onTimeout()
 {
     QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-    QString message = "Calling: " + timer[index]->getCronjob();
+    MyTimer *t = qobject_cast <MyTimer *> (QObject::sender());
+    QString message = "Calling: " + t->getCron();
     qDebug() << tr(" [ ][DataManager::205][%1] %2").arg(date, message);
-    emit sentUrl(timer[index]->getUrl());
+    emit sentUrl(t->getUrl());
 }
 
 void DataManager::clear()

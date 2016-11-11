@@ -1,4 +1,4 @@
-#include "cronparser.h"
+#include "CronParser.h"
 #include <iostream>
 #include <QStringList>
 #include <QRegExp>
@@ -9,77 +9,16 @@
 ======================================================*/
 CronParser::CronParser(QObject *parent) : QObject(parent)
 {
-    cronJob = "";
-    cronDate = QDateTime::currentDateTime();
-    isCalled = false;
-}
-
-/*======================================================
-деструктор копирования
-======================================================*/
-CronParser::CronParser(CronParser &obj, QObject *parent) : QObject(parent)
-{
-    cronJob = obj.cronJob;
-    cronDate = obj.cronDate;
-    minute = obj.minute;
-    hour = obj.hour;
-    dayOfMonth = obj.dayOfMonth;
-    month = obj.month;
-    year = obj.year;
-    dayOfWeek = obj.dayOfWeek;
-    isCalled = obj.isCalled;
-    current = obj.current;
-}
-
-/*======================================================
-метод перегружает операцию присваивания
-======================================================*/
-CronParser & CronParser::operator = ( CronParser const & obj )
-{
-    cronJob = obj.cronJob;
-    cronDate = obj.cronDate;
-    minute = obj.minute;
-    hour = obj.hour;
-    dayOfMonth = obj.dayOfMonth;
-    month = obj.month;
-    year = obj.year;
-    dayOfWeek = obj.dayOfWeek;
-    isCalled = obj.isCalled;
-    current = obj.current;
-    return *this;
-}
-
-/*======================================================
-метод возвращает cron-выражение
-======================================================*/
-QString CronParser::getCronJob()
-{
-    return cronJob;
-}
-
-/*======================================================
-метод возвращает ближайшую дату вызова функции.
-Аргументы метода:
-    cron - cron-выражение
-    date - дата, от которой ноебходимо считать время
-           ближайшего наступления события
-======================================================*/
-QDateTime CronParser::getDateTime(QString cron, QDateTime date)
-{
-    current = date;
-    cronJob = cron;
-    cronDate = calcTaskDate();
-    return cronDate;
 }
 
 /*======================================================
 метод обрабатывает cron-выражение и возвращает
 ближайшую дату вызова функции
 ======================================================*/
-QDateTime CronParser::calcTaskDate()
+QDateTime CronParser::calcTaskDate(const QString& cronJob)
 {
-    QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
     QDateTime optimalDate;
+    QDateTime current = QDateTime::currentDateTime();
     QStringList crons = cronJob.split(" ");
     try
     {
@@ -90,44 +29,39 @@ QDateTime CronParser::calcTaskDate()
         else
         {
             int value;
-            value = current.time().minute();
-            if(isCalled != true)
-            {
-                value += 1;
-                setCall(false);
-            }
-            minute = parse(crons.at(0), value, 0, 59);
+            value = current.time().minute() + 1;
+            QPair<int, bool> minute = parse(crons.at(0), value, 0, 59);
 
             value = current.time().hour();
             if(minute.second != false)
             {
                 value +=1;
             }
-            hour = parse(crons.at(1), value, 0, 23);
+            QPair<int, bool> hour = parse(crons.at(1), value, 0, 23);
 
             value = current.date().day();
             if(hour.second != false)
             {
                 value += 1;
             }
-            dayOfMonth = parse(crons.at(2), value, 1, QDate::currentDate().daysInMonth());
+            QPair<int, bool> dayOfMonth = parse(crons.at(2), value, 1, QDate::currentDate().daysInMonth());
 
             value = current.date().month();
             if(dayOfMonth.second != false)
             {
                 value += 1;
             }
-            month = parse(crons.at(3), value, 1, 12);
+            QPair<int, bool> month = parse(crons.at(3), value, 1, 12);
 
             value = current.date().year();
             if(month.second != false)
             {
                 value += 1;
             }
-            year = parse(crons.at(5), value, current.date().year() - 1, current.date().year() + 1);
+            QPair<int, bool> year = parse(crons.at(5), value, current.date().year() - 1, current.date().year() + 5);
 
             value = current.date().dayOfWeek();
-            dayOfWeek = parse(crons.at(4), value, 1, 7);
+            QPair<int, bool> dayOfWeek = parse(crons.at(4), value, 1, 7);
 
             if(dayOfWeek.first < value)
             {
@@ -149,6 +83,10 @@ QDateTime CronParser::calcTaskDate()
             if(hour.second != false)
             {
                 value ++;
+                if(value > QDate::currentDate().daysInMonth())
+                {
+                    value = dayOfMonth.first;
+                }
             }
             try
             {
@@ -173,8 +111,8 @@ QDateTime CronParser::calcTaskDate()
             }
             catch(int)
             {
-                QString message = "Invalid cronjob! Day of week does not correspond with day of month! Invalid cronjob: ";
-                qDebug() << tr(" [!][Scheduller::100][%1] %2 %3").arg(date, message, cronJob);
+                qDebug() << tr(" [!][CronParser][100][%1] Invalid cronjob: %2").
+                arg(getCurrentDate(), cronJob);
             }
 
             optimalDate.setDate(QDate(year.first, month.first, dayOfMonth.first));
@@ -183,16 +121,16 @@ QDateTime CronParser::calcTaskDate()
     }
     catch(int)
     {
-        QString message = "Invalid cronjob: ";
-        qDebug() << tr(" [!][Scheduller::100][%1] %2 %3").arg(date, message, cronJob);
-    }
-
-    if(optimalDate <= QDateTime::currentDateTime())
-    {
-        emit isSingle(true);
+        qDebug() << tr(" [!][CronParser][100][%1] Invalid cronjob: %2").
+        arg(getCurrentDate(), cronJob);
     }
 
     return optimalDate;
+}
+
+QString CronParser::getCurrentDate()
+{
+    return QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
 }
 
 /*======================================================
@@ -213,7 +151,6 @@ QDateTime CronParser::calcTaskDate()
 ======================================================*/
 QPair<int, bool> CronParser::parse(QString cron, int var, int minLimit, int maxLimit)
 {
-    QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
     QPair <int, bool> res;
     res.first = var;
     res.second = false;
@@ -259,8 +196,8 @@ QPair<int, bool> CronParser::parse(QString cron, int var, int minLimit, int maxL
         }
         catch(QString)
         {
-            QString message = "Invalid value \"" + cron + "\" in a cronjob";
-            qDebug() << tr(" [!][Scheduller::100][%1] %2 %3").arg(date, message, cronJob);
+            qDebug() << tr(" [!][CronParser][100][%1] Invalid cronjob: %2").
+            arg(getCurrentDate(), "may be later...");
         }
     }
     else if(value.exactMatch(cron))
@@ -282,8 +219,8 @@ QPair<int, bool> CronParser::parse(QString cron, int var, int minLimit, int maxL
         }
         catch(int)
         {
-            QString message = "Invalid value \"" + cron + "\" in a cronjob";
-            qDebug() << tr(" [!][Scheduller::100][%1] %2 %3").arg(date, message, cronJob);
+            qDebug() << tr(" [!][CronParser][100][%1] Invalid cronjob: %2").
+            arg(getCurrentDate(), "may be later...");
         }
     }
     else
@@ -380,28 +317,24 @@ QPair<int, bool> CronParser::parse(QString cron, int var, int minLimit, int maxL
         }
         catch(int)
         {
-            QString message = "Invalid value \"" + cron + "\" in a cronjob";
-            qDebug() << tr(" [!][Scheduller::100][%1] %2 %3").arg(date, message, cronJob);
+            qDebug() << tr(" [!][CronParser][100][%1] Invalid cronjob: %2").
+            arg(getCurrentDate(), "may be later...");
         }
     }
     return res;
 }
 
-/*======================================================
-метод устианавливает флаг isCalled
-Аргументы метода:
-    var - новое значение флага isCalled
-======================================================*/
-void CronParser::setCall(bool var)
+time_t CronParser::calcDiffTime(const QString& cron)
 {
-    isCalled = var;
+    QDateTime cronDate = calcTaskDate(cron);
+    time_t t = QDateTime::currentDateTime().msecsTo(QDateTime::fromTime_t(0).addSecs(cronDate.toTime_t()));
+    if(t < 0)
+    {
+        return 0;
+    }
+    if(t > INT_MAX)
+    {
+        return INT_MAX;
+    }
+    return t + 1000;
 }
-
-/*======================================================
-деструктор класса
-======================================================*/
-CronParser::~CronParser()
-{
-
-}
-

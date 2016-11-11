@@ -5,7 +5,7 @@
 #include <QList>
 #include <QJsonDocument>
 #include <QJsonArray>
-#include "timer.h"
+#include "mytimer.h"
 
 class DataManager : public QObject
 {
@@ -16,7 +16,8 @@ public:
     void            setData     (QJsonDocument data);
 
 private:
-    QList <Timer *> timer;
+    QList
+    <MyTimer *>     timer;
 
     void            parse       (QJsonArray array);
 signals:
@@ -24,8 +25,7 @@ signals:
     void            sentUrl     (QString);
 
 public slots:
-    void            start       (int index);
-    void            onTimeout   (int index);
+    void            onTimeout   ();
     void            clear       ();
 
 };

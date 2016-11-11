@@ -41,33 +41,13 @@ class CronParser : public QObject
     Q_OBJECT
 
 public:
-    explicit            CronParser  (QObject *parent = 0);
-                        CronParser  (CronParser & obj, QObject * parent = 0);
-                        ~CronParser ();
-
-    QString             getCronJob  ();
-    QDateTime           getDateTime (QString cron, QDateTime date);
-    void                setCall     (bool var);
-    CronParser &        operator =  (CronParser const & obj);
+    explicit                   CronParser      (QObject *parent = 0);
+    static time_t              calcDiffTime    (const QString &cron);
+    static QString             getCurrentDate  ();
 
 private:
-    QString             cronJob;
-    QDateTime           cronDate;
-    QPair<int, bool>    minute,
-                        hour,
-                        dayOfMonth,
-                        month,
-                        year,
-                        dayOfWeek;
-    bool                isCalled;
-    QDateTime           current;
-
-    QPair<int, bool>    parse       (QString cron, int var, int minLimit, int maxLimit);
-    QDateTime           calcTaskDate();
-signals:
-    void                isSingle    (bool singleShot);
-
-public slots:
+    static QPair<int, bool>    parse           (QString cron, int var, int minLimit, int maxLimit);
+    static QDateTime           calcTaskDate    (const QString &cronJob);
 };
 
 #endif // CRONPARSER_H

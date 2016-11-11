@@ -15,12 +15,12 @@ SOURCES += \
     ../src/main.cpp \
     ../src/httpserver.cpp \
     ../src/cronparser.cpp \
-    ../src/timer.cpp \
-    ../src/datamanager.cpp
+    ../src/datamanager.cpp \
+    ../src/mytimer.cpp
 
 HEADERS += \
     ../src/httpserver.h \
     ../src/cronparser.h \
-    ../src/timer.h \
-    ../src/datamanager.h
+    ../src/datamanager.h \
+    ../src/mytimer.h
 
