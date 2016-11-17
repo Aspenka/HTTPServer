@@ -33,11 +33,13 @@ void DataManager::parse(QJsonArray array)
             if(uid != "" && cron != "" && url != "")
             {
                 QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+
                 QString message = "Timer have cron: " + cron;
                 qDebug() << tr(" [ ][DataManager::203][%1] %2").arg(date, message);
 
                 MyTimer *t = new MyTimer();
                 connect(t, SIGNAL(timeout()), this, SLOT(onTimeout()));
+
                 t->start(cron, url);
                 timer.append(t);
             }
@@ -64,6 +66,7 @@ void DataManager::onTimeout()
     QString message = "Calling: " + t->getCron();
     qDebug() << tr(" [ ][DataManager::205][%1] %2").arg(date, message);
     emit sentUrl(t->getUrl());
+    t->start();
 }
 
 void DataManager::clear()

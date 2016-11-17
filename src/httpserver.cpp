@@ -43,7 +43,7 @@ void HttpServer::start()
 
         connect(this, SIGNAL(newConnection()), this, SLOT(onConnection()));
         dm = new DataManager();
-        startTimer();
+        start_timer();
 
         /*dm = new DataManager();
         connect(dm, SIGNAL(sentUrl(QString)), this, SLOT(get(QString)));
@@ -58,7 +58,7 @@ void HttpServer::start()
     }
 }
 
-void HttpServer::startTimer()
+void HttpServer::start_timer()
 {    
     connect(dm, SIGNAL(sentUrl(QString)), this, SLOT(get(QString)));
     dm->setData(get(url));
@@ -138,7 +138,7 @@ void HttpServer::restart()
 {
     disconnect(dm, SIGNAL(sentUrl(QString)), this, SLOT(get(QString)));
     dm->clear();
-    startTimer();
+    start_timer();
 }
 
 void HttpServer::onReadyRead()

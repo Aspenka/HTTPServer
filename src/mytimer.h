@@ -2,7 +2,7 @@
 #define MYTIMER_H
 
 #include <QTimer>
-#include "CronParser.h"
+#include "cronparser.h"
 #include <QStringList>
 
 class MyTimer : public QObject

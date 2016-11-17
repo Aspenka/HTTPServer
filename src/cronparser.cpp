@@ -1,4 +1,4 @@
-#include "CronParser.h"
+#include "cronparser.h"
 #include <iostream>
 #include <QStringList>
 #include <QRegExp>
